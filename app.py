@@ -36,8 +36,8 @@ class RequestData:
     }
     def OAuthData(code):
         return {
-        'client_id': 15818,
-        'client_secret': '4XmFzV8FAfP8o9jIQs8asXsP8EOHdLZ6cFuZnHvz',
+        'client_id': application['client_id'],
+        'client_secret': application['client_secret'],
         'code': code,
         'grant_type': 'authorization_code',
         'redirect_uri': 'http://127.0.0.1/authorise'
