@@ -9,6 +9,13 @@ app.secret_key = "secret key"
 API_URL = 'https://osu.ppy.sh/api/v2'
 TOKEN_URL = 'https://osu.ppy.sh/oauth/token'
 
+with open('db.json', 'r+') as file:
+    db = load(file)
+    application = {
+        'client_id': db.get('application')['client_id'],
+        'client_secret': db.get('application')['client_secret']
+    }
+
 class Endpoint:
     def get_user_scores_all(bid: int, user: int): return f'/beatmaps/{bid}/scores/users/{user}/all'
 
@@ -22,8 +29,8 @@ class Headers:
 
 class RequestData:
     NoOAuthData = {
-        'client_id': 15818,
-        'client_secret': '4XmFzV8FAfP8o9jIQs8asXsP8EOHdLZ6cFuZnHvz',
+        'client_id': application['client_id'],
+        'client_secret': application['client_secret'],
         'grant_type': 'client_credentials',
         'scope': 'public'
     }
