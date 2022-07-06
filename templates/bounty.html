@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block head %}
+    <title>SNIPER - Bounty</title>
+    <link rel="stylesheet" href="/static/bounty.css">
+{% endblock %}
+{% block content %}
+<div class='bounty'>
+    {% for i in beatmap %}
+    <img src="{{i.cover}}" class='cover'>
+    {% endfor %}
+</div>
+{% endblock %}

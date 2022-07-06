@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block head %}
+    <title>SNIPER - Bounty</title>
+    <link rel="stylesheet" href="/static/make-bounty.css">
+{% endblock %}
+{% block content %}
+<div class='input'>
+    <h3>Bounty</h3>
+    {% if exists == True %}
+            <div class="exists"><h3>Beatmap already in database!</h3></div>
+    {% endif %}
+    
+    <form method="post" action="/make-bounty?uid={{uid}}" enctype="multipart/form-data">
+        <label for="name">Beatmap Link:</label><br>
+        <input type="text" id="burl" name="burl"><br>
+
+        <input type="submit" value="Make bounty">
+    </form>
+</div>
+{% endblock %}
