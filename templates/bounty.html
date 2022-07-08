@@ -8,5 +8,36 @@
     {% for i in beatmap %}
     <img src="{{i.cover}}" class='cover'>
     {% endfor %}
+    <div class="filler">
+        <h3>Leaderboard</h3>
+        {% if session['uid']%}
+            {% if on_ranking == False %}
+                <button onclick="window.location='/bounty/{{bid}}?accept=1';">Join Rankings!</button>
+            {% endif %}
+        {% endif %}
+    </div>
+    <div class="scores">   
+        {% for i in scores %}
+            {% if i.rank == 'XH' %}
+                <style>.XH {color: lightgrey;}</style>
+            {% elif i.rank == 'X' %}
+                <style>.X {color: gold;}</style>
+            {% elif i.rank == 'S' %}
+                <style>.S {color: gold;}</style>
+            {% elif i.rank == 'SH' %}
+                <style>.SH {color: lightgrey;}</style>
+            {% elif i.rank == 'A' %}
+                <style>.A {color: greenyellow;}</style>
+            {% elif i.rank == 'B' %}
+                <style>.B {color: rgb(51, 51, 255);}</style>
+            {% elif i.rank == 'C' %}
+                <style>.C {color: rgb(156, 0, 156);}</style>
+            {% elif i.rank == 'D' %}
+                <style>.D {color: red;}</style>
+            {% endif %}
+            
+            <a href='{{i.score_url}}'><div class="score"><p class="{{i.rank}}">{{i.rank}}</p><p class="score">{{i.score}}</p><p class="accuracy">{{i.accuracy}}</p></div></a>
+        {% endfor %}
+    </div> 
 </div>
 {% endblock %}

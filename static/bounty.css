@@ -1,6 +1,49 @@
+@font-face { font-family: Modern_Sans; src: url('/static/fonts/Modern_Sans_Light.otf'); }
+
 .cover {
     display: block;
     margin-left: auto;
     margin-right: auto;
     width: 80vw;
+}
+
+.filler {
+    margin-left: auto;
+    margin-right: auto;
+    width: 80vw;
+    height: 5vh;
+    background-color: rgb(40, 40, 40);
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.filler h3 {
+    margin-left: 2vw;
+    font-family: Modern_Sans; 
+}
+
+.filler button {
+    font-family: Modern_Sans;
+    margin-left: 60vw
+}
+
+.scores {
+    border: 0.5vw solid white;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 79vw;
+}
+
+.score {
+    min-height: 5vh;
+    display: flex;
+    align-items: center;
+    color: white;
+}
+
+.score p{
+    margin-left: 20px;
+    font-family: Modern_Sans; 
 }
