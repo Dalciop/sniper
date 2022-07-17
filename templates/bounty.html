@@ -15,6 +15,9 @@
                 <a href="/bounty/{{bid}}?accept=1">Join Rankings!</a>
             {% endif %}
         {% endif %}
+        {% if scores['invalid'] == 1 %}
+            <div class="exists"><h3>No scores on this map!</h3></div>
+        {% endif %}
     </div>
     <div class="scores">
         {% for i in scores %}

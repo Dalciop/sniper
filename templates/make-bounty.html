@@ -6,10 +6,12 @@
 {% block content %}
 <div class='input'>
     <h3>Bounty</h3>
-    {% if exists == True %}
-            <div class="exists"><h3>Beatmap already in database!</h3></div>
+    {% if exists == '1' %}
+        <div class="exists"><h3>Beatmap already in database!</h3></div>
     {% endif %}
-    
+    {% if exists == '2' %}
+        <div class="exists"><h3>Wrong URL!</h3></div>
+    {% endif %}
     <form method="post" action="/make-bounty?uid={{uid}}" enctype="multipart/form-data">
         <label for="name">Beatmap Link:</label><br>
         <input type="text" id="burl" name="burl"><br>

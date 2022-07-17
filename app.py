@@ -129,8 +129,11 @@ def check_scores(bid):
             if i['bid'] == bid:
                 i=dumps(i)
                 for i in loads(i).get('participants'):
-                    r = get_data(Endpoint.get_user_best_score(bid, i['uid']), Token.get_NoOAuth(), params = {'mode': 'osu'}).get('score') 
-                    scores.append({'accuracy': Converter.Accuracy(r['accuracy']), 'date': r['created_at'], 'score': r['score'], 'rank': r['rank'], 'uid': r['user_id'], 'username': r['user']['username'], 'perfect': r['perfect'], 'score_url': f'https://osu.ppy.sh/scores/osu/{r["best_id"]}'})
+                    r = get_data(Endpoint.get_user_best_score(bid, i['uid']), Token.get_NoOAuth(), params = {'mode': 'osu'}).get('score')
+                    try:    
+                        scores.append({'accuracy': Converter.Accuracy(r['accuracy']), 'date': r['created_at'], 'score': r['score'], 'rank': r['rank'], 'uid': r['user_id'], 'username': r['user']['username'], 'perfect': r['perfect'], 'score_url': f'https://osu.ppy.sh/scores/osu/{r["best_id"]}'})
+                    except:
+                        return {'invalid': 1}
     scores = sorted(scores, key=lambda d: d['score'], reverse=True)
     return scores
 
@@ -273,7 +276,10 @@ def makebounty():
             with open('db.json', 'r+') as file:
                 db = load(file)
                 burl = request.form['burl']
-                bid = int(burl.split("#")[1].split('/')[1])
+                try:
+                    bid = int(burl.split("#")[1].split('/')[1])
+                except:
+                    return redirect('/make-bounty?exists=2')
                 for i in db["bounty"]:
                     if i["bid"] == bid:
                         return redirect('/make-bounty?exists=1')
@@ -302,8 +308,8 @@ def makebounty():
                 dump(db, file, indent = 4)
             return redirect(f'/bounty/{bid}')
         if request.method == 'GET':
-            if bool(request.args.get('exists')) == True:
-                return render_template('make-bounty.html', uid=session['uid'], exists=True)
+            if request.args.get('exists'):
+                return render_template('make-bounty.html', uid=session['uid'], exists=request.args.get('exists'))
             return render_template('make-bounty.html', uid=session['uid'], exists=False)
     return redirect('/')
 
