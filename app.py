@@ -290,7 +290,7 @@ def makebounty():
                 beatmap_data = get_data(Endpoint.get_beatmap(bid), Token.get_NoOAuth())
                 if 'error' in beatmap_data:
                     return redirect('make-bounty?exists=2')
-                if beatmap_data['beatmapset']['status'] == 'ranked' or beatmap_data['beatmapset']['status'] == 'graveyard' or beatmap_data['beatmapset']['status'] == 'pending' or beatmap_data['beatmapset']['status'] == 'wip':
+                if beatmap_data['beatmapset']['status'] == 'graveyard' or beatmap_data['beatmapset']['status'] == 'pending' or beatmap_data['beatmapset']['status'] == 'wip':
                     return redirect('/make-bounty?exists=3')
                 bounty = {'artist': beatmap_data['beatmapset']['artist'],
                         'title': beatmap_data['beatmapset']['title'],
