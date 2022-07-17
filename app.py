@@ -85,12 +85,16 @@ class Token:
             response = post(TOKEN_URL, data=RequestData.NoOAuthData)
             response = response.json().get('access_token')
         except:
-            return 'unauthorized'
+            raise Exception('Wrong application values! Please make sure that client_id and client_secret are correct!')
         return response
 
     def get_OAuth(code):
-        response = post(TOKEN_URL, data=RequestData.OAuthData(code))
-        return response.json()
+        try: 
+            response = post(TOKEN_URL, data=RequestData.OAuthData(code))
+            response = response.json()
+        except:
+            raise Exception('Wrong application values! Please make sure that client_id and client_secret are correct!')
+        return response 
 
     def refresh_OAuth(refresh_token, access_token):
         response = post(TOKEN_URL, data=RequestData.RefreshOAuth(refresh_token, access_token), headers=Headers.OAuthHeader)
