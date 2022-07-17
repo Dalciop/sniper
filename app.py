@@ -1,7 +1,6 @@
 from datetime import datetime
 from json import dump, dumps, load, loads
-from logging import raiseExceptions
-from flask import Flask, Response, flash, render_template, redirect, request, session, url_for
+from flask import Flask, render_template, redirect, request, session
 from requests import post, get
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageEnhance
 from os.path import exists
@@ -12,7 +11,7 @@ app.secret_key = "secret key"
 
 API_URL = 'https://osu.ppy.sh/api/v2'
 TOKEN_URL = 'https://osu.ppy.sh/oauth/token'
-OAUTH_URL = 'https://osu.ppy.sh/oauth/authorize?scope=public&response_type=code&redirect_uri=https://bdb0-185-157-14-201.eu.ngrok.io/authorise&client_id=15818'
+OAUTH_URL = 'https://osu.ppy.sh/oauth/authorize?scope=public&response_type=code&redirect_uri=http://127.0.0.1/authorise&client_id=15818'
 
 if exists('db.json'):
     with open('db.json', 'r+') as file:
@@ -21,6 +20,8 @@ if exists('db.json'):
             'client_id': db.get('application')['client_id'],
             'client_secret': db.get('application')['client_secret']
         }
+        if db.get('application')['client_id'] == 0 or db.get('application')['client_secret'] == '':
+            raise Exception('Client id and client secret not found! Please put right API values in db.json.')
 else:
     with open('db.json', 'w') as file:
         template = {
@@ -33,7 +34,7 @@ else:
         }
         file.seek(0)
         dump(template, file, indent = 4)
-        raise Exception('Client id and client secret not found! Please put right API values in db.json.')
+        raise Exception('Client id and client secret not found! Database template has been created. Please put right API values in db.json.')
 
 class Endpoint:
     def get_user_scores_all(bid: int, user: int): return f'{API_URL}/beatmaps/{bid}/scores/users/{user}/all'
@@ -67,7 +68,7 @@ class RequestData:
         'client_secret': application['client_secret'],
         'code': code,
         'grant_type': 'authorization_code',
-        'redirect_uri': 'https://bdb0-185-157-14-201.eu.ngrok.io/authorise'
+        'redirect_uri': 'http://127.0.0.1/authorise'
     }
     def RefreshOAuth(refresh_token, access_token):
         return {
@@ -80,8 +81,12 @@ class RequestData:
 
 class Token:
     def get_NoOAuth():
-        response = post(TOKEN_URL, data=RequestData.NoOAuthData)
-        return response.json().get('access_token')
+        try:    
+            response = post(TOKEN_URL, data=RequestData.NoOAuthData)
+            response = response.json().get('access_token')
+        except:
+            return 'unauthorized'
+        return response
 
     def get_OAuth(code):
         response = post(TOKEN_URL, data=RequestData.OAuthData(code))
@@ -107,6 +112,9 @@ class Converter:
         acc = acc * 100
         acc = str(round(acc, 2)) + '%'
         return acc
+
+if 'unauthorized' in Token.get_NoOAuth():
+    raise Exception('Wrong application values! Please make sure that client_id and client_secret are correct!')
 
 def check_scores(bid):
     scores = []
