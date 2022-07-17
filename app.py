@@ -153,6 +153,10 @@ def process_cover(cover):
     draw.text((125, 400), f"{cover['title']} - [{cover['version']}]", (255, 255, 255), font=font50)
     coverimg.save(f'./static/cover/{cover["bid"]}.jpg')
 
+@app.context_processor
+def inject_user():
+    return dict(client_id=application['client_id'])
+
 @app.route('/')
 def index():
     with open('db.json', 'r+') as file:
