@@ -12,6 +12,9 @@
     {% if exists == '2' %}
         <div class="exists"><h3>Wrong URL!</h3></div>
     {% endif %}
+    {% if exists == '3' %}
+        <div class="exists"><h3>Beatmap don't have leaderboards!</h3></div>
+    {% endif %}
     <form method="post" action="/make-bounty?uid={{uid}}" enctype="multipart/form-data">
         <label for="name">Beatmap Link:</label><br>
         <input type="text" id="burl" name="burl"><br>
