@@ -12,8 +12,6 @@
 db.json
 .vscode/
 static/cover
-static/fonts
-static/banner.jpg
 static/banner3.jpg
 
 # User-specific files (MonoDevelop/Xamarin Studio)
