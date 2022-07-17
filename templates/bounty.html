@@ -11,12 +11,12 @@
     <div class="filler">
         <h3>Leaderboard</h3>
         {% if session['uid']%}
-            {% if on_ranking == False %}
-                <button onclick="window.location='/bounty/{{bid}}?accept=1';">Join Rankings!</button>
+            {% if on_rankings == False %}
+                <a href="/bounty/{{bid}}?accept=1">Join Rankings!</a>
             {% endif %}
         {% endif %}
     </div>
-    <div class="scores">   
+    <div class="scores">
         {% for i in scores %}
             {% if i.rank == 'XH' %}
                 <style>.XH {color: lightgrey;}</style>

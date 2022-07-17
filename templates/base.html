@@ -1,9 +1,33 @@
 <html>
     <head>
         <link rel="stylesheet" href="/static/base.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         {% block head %}{% endblock %}
     </head>
     <body>
-        <div id="content">{% block content %}{% endblock %}</div>
+        <div class="topnav">
+            <a class="active" href="/">Home</a>
+            {% if session['access_token'] %}
+              <a href="/me">Profile</a>
+              <a href="/make-bounty">Bounty</a>
+            {% endif %}
+            {% if not session['access_token'] %}
+              <a href="https://osu.ppy.sh/oauth/authorize?scope=public&response_type=code&redirect_uri=https://bdb0-185-157-14-201.eu.ngrok.io/authorise&client_id=15818">Login</a>
+            {% endif %}
+            <div class="search-container">
+              <form action="/">
+                
+                <input type="text" placeholder="Search.." name="search">
+                <button type="submit">Submit</button>
+                <!-- <select id="cars" name="cars">
+                  <option value="volvo">Volvo</option>
+                  <option value="saab">Saab</option>
+                  <option value="fiat">Fiat</option>
+                  <option value="audi">Audi</option>
+                </select> -->
+              </form>
+            </div>
+          </div>
+        <div class="content">{% block content %}{% endblock %}</div>
     </body>
 </html>

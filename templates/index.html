@@ -4,5 +4,15 @@
     <link rel="stylesheet" href="/static/index.css">
 {% endblock %}
 {% block content %}
-    poggers
+<div class="banner">
+    <img src="/static/banner.jpg">
+    <h1>osu!sniper</h1>
+</div>
+<div class="bounty">
+    {%for i in bounty%}
+        <div class="cover">
+            <a href="/bounty/{{i.bid}}"><img src={{i.cover_url}}></a>
+        </div>
+    {%endfor%}
+</div>     
 {% endblock %}

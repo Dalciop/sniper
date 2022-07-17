@@ -1,7 +1,6 @@
-from asyncio import get_event_loop, sleep
 from datetime import datetime
 from json import dump, dumps, load, loads
-from flask import Flask, Response, render_template, redirect, request, session
+from flask import Flask, Response, flash, render_template, redirect, request, session, url_for
 from requests import post, get
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageEnhance
 
@@ -11,7 +10,7 @@ app.secret_key = "secret key"
 
 API_URL = 'https://osu.ppy.sh/api/v2'
 TOKEN_URL = 'https://osu.ppy.sh/oauth/token'
-OAUTH_URL = 'https://osu.ppy.sh/oauth/authorize?scope=public&response_type=code&redirect_uri=http://127.0.0.1/authorise&client_id=15818'
+OAUTH_URL = 'https://osu.ppy.sh/oauth/authorize?scope=public&response_type=code&redirect_uri=https://bdb0-185-157-14-201.eu.ngrok.io/authorise&client_id=15818'
 
 with open('db.json', 'r+') as file:
     db = load(file)
@@ -24,8 +23,8 @@ class Endpoint:
     def get_user_scores_all(bid: int, user: int): return f'{API_URL}/beatmaps/{bid}/scores/users/{user}/all'
     def get_user_best_score(bid: int, user: int): return f'{API_URL}/beatmaps/{bid}/scores/users/{user}'
     def get_own_data(): return f'{API_URL}/me'
-    def get_user_data(uid): return f'{API_URL}/users/{uid}'
-    def get_beatmap(bid): return f'{API_URL}/beatmaps/{bid}'
+    def get_user_data(uid: int): return f'{API_URL}/users/{uid}'
+    def get_beatmap(bid: int): return f'{API_URL}/beatmaps/{bid}'
 
 class Headers:
     def headers(token):
@@ -52,7 +51,7 @@ class RequestData:
         'client_secret': application['client_secret'],
         'code': code,
         'grant_type': 'authorization_code',
-        'redirect_uri': 'http://127.0.0.1/authorise'
+        'redirect_uri': 'https://bdb0-185-157-14-201.eu.ngrok.io/authorise'
     }
     def RefreshOAuth(refresh_token, access_token):
         return {
@@ -85,7 +84,7 @@ class Token:
             dump(db, file, indent = 4)
             return r
 
-class Parsers:
+class Converter:
     def Accuracy(acc):
         if acc == 1:
             return '100%'
@@ -102,7 +101,7 @@ def check_scores(bid):
                 i=dumps(i)
                 for i in loads(i).get('participants'):
                     r = get_data(Endpoint.get_user_best_score(bid, i['uid']), Token.get_NoOAuth(), params = {'mode': 'osu'}).get('score') 
-                    scores.append({'accuracy': Parsers.Accuracy(r['accuracy']), 'date': r['created_at'], 'score': r['score'], 'rank': r['rank'], 'uid': r['user_id'], 'username': r['user']['username'], 'perfect': r['perfect'], 'score_url': f'https://osu.ppy.sh/scores/osu/{r["best_id"]}'})
+                    scores.append({'accuracy': Converter.Accuracy(r['accuracy']), 'date': r['created_at'], 'score': r['score'], 'rank': r['rank'], 'uid': r['user_id'], 'username': r['user']['username'], 'perfect': r['perfect'], 'score_url': f'https://osu.ppy.sh/scores/osu/{r["best_id"]}'})
     scores = sorted(scores, key=lambda d: d['score'], reverse=True)
     return scores
 
@@ -113,7 +112,7 @@ def get_data(eurl, token, params=None):
     return response.json()
 
 def process_cover(cover):
-    r = get(cover['cover_url'])
+    r = get(cover['banner_url'])
     with open(f'./static/cover/{cover["bid"]}.jpg', 'wb') as f:
         f.write(r.content)
     font75 = ImageFont.truetype("./static/fonts/Modern_Sans_Light.otf", 75)
@@ -128,7 +127,19 @@ def process_cover(cover):
 
 @app.route('/')
 def index():
-    return render_template("index.html")
+    with open('db.json', 'r+') as file:
+        db = load(file)
+        bounty = []
+        query = request.args.get('search')
+        if query != None:
+            for i in db.get('bounty'):
+                if query.lower() in i['artist'].lower() or query.lower() in i['tags'].lower() or query.lower() in i['version'].lower() or query.lower() in i['creator'].lower() or query.lower() in i['title'].lower() or query in str(i['bid']) or query.lower() in i['burl'].lower():
+                    bounty.append(i)
+        else:
+            for i in db.get('bounty'):
+                bounty.append(i)
+        
+    return render_template("index.html", bounty=loads(dumps(bounty)))
 
 @app.route('/score')
 def score():
@@ -148,6 +159,10 @@ def me():
             return r
     return redirect(OAUTH_URL)
 
+@app.route('/login')
+def login():
+    return f'<a href="{OAUTH_URL}">Login</a>'
+
 @app.route('/authorise')
 def authorise():
     code = request.args.get('code')
@@ -161,19 +176,24 @@ def authorise():
             if int(i['uid']) == int(uid):
                 i['access_token'] = token_OAuth['access_token']
                 i['refresh_token'] = token_OAuth['refresh_token']
+                file.seek(0)
+                dump(db, file, indent = 4)
                 return redirect('/me')
         db["users"].append({"access_token": token_OAuth.get('access_token'), "refresh_token": token_OAuth.get("refresh_token"), "uid": uid})
         file.seek(0)
         dump(db, file, indent = 4)
-        return redirect('/me')
+        return redirect('/')
 
 @app.route('/beatmap/<int:bid>')
 def beatmap(bid):
     return get_data(Endpoint.get_beatmap(bid), Token.get_NoOAuth())
 
+@app.route('/userscore/<int:uid>/<int:bid>')
+def shit(bid, uid):
+    return get_data(Endpoint.get_user_best_score(bid, uid), Token.get_NoOAuth()) 
+
 @app.route('/bounty/<int:bid>')
 def bounty(bid):
-    action = request.args.get('accept')
     with open('db.json', 'r+') as file:
         db = load(file)
         bounty = []
@@ -181,27 +201,34 @@ def bounty(bid):
         beatmap = []
         scores = []
         on_rankings = False
+        
+        action = request.args.get('accept')
+        error = request.args.get('error')
+
         for i in db['bounty']:
             if i['bid'] == bid:
+                if session['uid']:
+                    participants = i.get('participants') 
+                    for j in participants:
+                        if j['uid'] == session['uid']:
+                            on_rankings = False
                 if bool(action) == True:
-                    if session['uid']:
-                        participants = i.get('participants') 
-                        for j in participants:
-                            if j['uid'] == session['uid']:
-                                on_rankings = True
-                        if on_rankings != True:
+                    if on_rankings == False:
+                        response = get_data(Endpoint.get_user_best_score(2862287, 9667334), Token.get_NoOAuth())
+                        if 'error' not in response:
                             participants.append({'uid': session['uid']})
                             file.seek(0)
                             dump(db, file, indent = 4)
                             return redirect(f'/bounty/{bid}')
-                    else:
-                        return redirect(OAUTH_URL)
-                scores = check_scores(bid)
-                author_data = get_data(Endpoint.get_user_data(i['uid']), Token.get_NoOAuth(), params={'key': 'id'})
-                author.append({'avatar_url': author_data['avatar_url'], 'username': author_data['username']})
-                bounty.append({'date': i['date'], 'bmode': i['bmode'], "burl": i['burl']})
-                beatmap.append({'cover': f'/static/cover/{bid}.jpg'})
-                return render_template('bounty.html', author=loads(dumps(author)), bounty=loads(dumps(bounty)), beatmap=loads(dumps(beatmap)), scores=loads(dumps(scores)), on_rankings=on_rankings, bid=bid)
+                        else:
+                            return redirect(f'/bounty/{bid}?error=1')
+                else:
+                    scores = check_scores(bid)
+                    author_data = get_data(Endpoint.get_user_data(i['uid']), Token.get_NoOAuth(), params={'key': 'id'})
+                    author.append({'avatar_url': author_data['avatar_url'], 'username': author_data['username']})
+                    bounty.append({'date': i['date'], 'bmode': i['bmode'], "burl": i['burl']})
+                    beatmap.append({'cover': f'/static/cover/{bid}.jpg'})
+                    return render_template('bounty.html', author=loads(dumps(author)), bounty=loads(dumps(bounty)), beatmap=loads(dumps(beatmap)), scores=loads(dumps(scores)), on_rankings=on_rankings, bid=bid, error=error)
         return redirect("/")
 
 @app.route('/make-bounty', methods=['GET', 'POST'])
@@ -220,13 +247,22 @@ def makebounty():
                 uid = int(request.args.get('uid'))
                 bmode = burl.split("#")[1].split('/')[0]
                 beatmap_data = get_data(Endpoint.get_beatmap(bid), Token.get_NoOAuth())
-                cover = {'artist': beatmap_data['beatmapset']['artist'],
+                bounty = {'artist': beatmap_data['beatmapset']['artist'],
                         'title': beatmap_data['beatmapset']['title'],
                         'version': beatmap_data['version'],
                         'bid': bid, 
-                        'cover_url': beatmap_data['beatmapset']['covers']['cover@2x']}
-                process_cover(cover)
-                db["bounty"].append({"burl": burl, "bid": bid, "bmode": bmode, "uid": uid, "date": date, 'participants': [{'uid': uid}]})
+                        'burl': burl,
+                        "bmode": bmode,
+                        "uid": uid,
+                        "date": date,
+                        'tags': beatmap_data['beatmapset']['tags'],
+                        'banner_url': beatmap_data['beatmapset']['covers']['cover@2x'],
+                        'cover_url': beatmap_data['beatmapset']['covers']['list@2x'],
+                        'creator': beatmap_data['beatmapset']['creator'],
+                        'participants': [{'uid': uid}]
+                    }
+                process_cover(bounty)
+                db["bounty"].append(bounty)
                 file.seek(0)
                 dump(db, file, indent = 4)
             return redirect(f'/bounty/{bid}')

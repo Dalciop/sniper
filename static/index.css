@@ -1,0 +1,51 @@
+@font-face { font-family: Modern_Sans; src: url('/static/fonts/Modern_Sans_Light.otf'); }
+
+.banner {
+    margin-left: auto;
+    margin-right: auto;
+    height: 500px;
+    max-width: 80vw;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    color: white;
+}
+
+.banner img {
+    height: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    object-fit: cover;
+}
+
+.banner h1 {
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: Modern_Sans;
+    font-size: 750%;
+}
+
+.bounty {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 80vw;
+    display: block;
+}
+
+.cover {
+    width: 325px;
+    height: 325px;
+    margin-top: 25px;
+    margin-left: 25px;
+    margin-right: auto;
+    float: left;
+}
+
+.cover img {
+    width: 300px;
+    height: 300px;
+    object-fit: cover;
+}

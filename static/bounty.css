@@ -23,21 +23,33 @@
     font-family: Modern_Sans; 
 }
 
-.filler button {
+.filler a {
+    float: right;
+    background-color: #2196F3;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
     font-family: Modern_Sans;
-    margin-left: 60vw
+}
+
+.filler a:hover {
+    background-color: #ddd;
+    color: black;
+    font-family: Modern_Sans;
 }
 
 .scores {
-    border: 0.5vw solid white;
+    border: 5px solid white;
     display: block;
     margin-left: auto;
     margin-right: auto;
-    width: 79vw;
+    width: 80vw;
 }
 
 .score {
-    min-height: 5vh;
+    height: 50px;
     display: flex;
     align-items: center;
     color: white;
