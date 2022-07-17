@@ -1,8 +1,10 @@
 from datetime import datetime
 from json import dump, dumps, load, loads
+from logging import raiseExceptions
 from flask import Flask, Response, flash, render_template, redirect, request, session, url_for
 from requests import post, get
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageEnhance
+from os.path import exists
 
 app = Flask(__name__)
 
@@ -12,12 +14,26 @@ API_URL = 'https://osu.ppy.sh/api/v2'
 TOKEN_URL = 'https://osu.ppy.sh/oauth/token'
 OAUTH_URL = 'https://osu.ppy.sh/oauth/authorize?scope=public&response_type=code&redirect_uri=https://bdb0-185-157-14-201.eu.ngrok.io/authorise&client_id=15818'
 
-with open('db.json', 'r+') as file:
-    db = load(file)
-    application = {
-        'client_id': db.get('application')['client_id'],
-        'client_secret': db.get('application')['client_secret']
-    }
+if exists('db.json'):
+    with open('db.json', 'r+') as file:
+        db = load(file)
+        application = {
+            'client_id': db.get('application')['client_id'],
+            'client_secret': db.get('application')['client_secret']
+        }
+else:
+    with open('db.json', 'w') as file:
+        template = {
+            "application": {
+                'client_id': 0,
+                'client_secret': ''
+            },
+            "users": [],
+            "bounty": []
+        }
+        file.seek(0)
+        dump(template, file, indent = 4)
+        raise Exception('Client id and client secret not found! Please put right API values in db.json.')
 
 class Endpoint:
     def get_user_scores_all(bid: int, user: int): return f'{API_URL}/beatmaps/{bid}/scores/users/{user}/all'
