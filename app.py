@@ -4,6 +4,7 @@ from flask import Flask, render_template, redirect, request, session
 from requests import post, get
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageEnhance
 from os.path import exists
+from os import mkdir
 
 app = Flask(__name__)
 
@@ -141,6 +142,8 @@ def get_data(eurl, token, params=None):
 
 def process_cover(cover):
     r = get(cover['banner_url'])
+    if not exists("./static/cover"):
+        mkdir('./static/cover')
     with open(f'./static/cover/{cover["bid"]}.jpg', 'wb') as f:
         f.write(r.content)
     font75 = ImageFont.truetype("./static/fonts/Modern_Sans_Light.otf", 75)
