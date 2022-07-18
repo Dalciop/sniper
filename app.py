@@ -259,18 +259,21 @@ def bounty(bid):
         author = []
         beatmap = []
         scores = []
-        on_rankings = False
+        on_rankings = True
         
         action = request.args.get('accept')
         error = request.args.get('error')
 
         for i in db['bounty']:
             if i['bid'] == bid:
-                if session['uid']:
-                    participants = i.get('participants') 
-                    for j in participants:
-                        if j['uid'] == session['uid']:
-                            on_rankings = False
+                try:
+                    if session['uid']:
+                        participants = i.get('participants') 
+                        for j in participants:
+                            if j['uid'] == session['uid']:
+                                on_rankings = False
+                except KeyError:
+                    pass
                 if bool(action) == True:
                     if on_rankings == False:
                         response = get_data(Endpoint.get_user_best_score(2862287, 9667334), Token.get_NoOAuth())
@@ -281,14 +284,14 @@ def bounty(bid):
                             return redirect(f'/bounty/{bid}')
                         else:
                             return redirect(f'/bounty/{bid}?error=1')
-                else:
-                    scores = check_scores(bid)
-                    author_data = get_data(Endpoint.get_user_data(i['uid']), Token.get_NoOAuth(), params={'key': 'id'})
-                    author.append({'avatar_url': author_data['avatar_url'], 'username': author_data['username']})
-                    bounty.append({'date': i['date'], 'bmode': i['bmode'], "burl": i['burl']})
-                    beatmap.append({'cover': f'/static/cover/{bid}.jpg'})
-                    return render_template('bounty.html', author=loads(dumps(author)), bounty=loads(dumps(bounty)), beatmap=loads(dumps(beatmap)), scores=loads(dumps(scores)), on_rankings=on_rankings, bid=bid, error=error)
-        return redirect("/")
+                
+                scores = check_scores(bid)
+                author_data = get_data(Endpoint.get_user_data(i['uid']), Token.get_NoOAuth(), params={'key': 'id'})
+                author.append({'avatar_url': author_data['avatar_url'], 'username': author_data['username']})
+                bounty.append({'date': i['date'], 'bmode': i['bmode'], "burl": i['burl']})
+                beatmap.append({'cover': f'/static/cover/{bid}.jpg'})
+                return render_template('bounty.html', author=loads(dumps(author)), bounty=loads(dumps(bounty)), beatmap=loads(dumps(beatmap)), scores=loads(dumps(scores)), on_rankings=on_rankings, bid=bid, error=error)
+        # return redirect("/")
 
 @app.route('/make-bounty', methods=['GET', 'POST'])
 def makebounty():
