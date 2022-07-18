@@ -12,14 +12,14 @@ app.secret_key = "secret key"
 
 API_URL = 'https://osu.ppy.sh/api/v2'
 TOKEN_URL = 'https://osu.ppy.sh/oauth/token'
-OAUTH_URL = 'https://osu.ppy.sh/oauth/authorize?scope=public&response_type=code&redirect_uri=http://127.0.0.1/authorise&client_id=15818'
 
 if exists('db.json'):
     with open('db.json', 'r+') as file:
         db = load(file)
         application = {
             'client_id': db.get('application')['client_id'],
-            'client_secret': db.get('application')['client_secret']
+            'client_secret': db.get('application')['client_secret'],
+            'redirect_uri': db.get('application')['redirect_uri']
         }
         if db.get('application')['client_id'] == 0 or db.get('application')['client_secret'] == '':
             raise Exception('Client id and client secret not found! Please put right API values in db.json.')
@@ -36,6 +36,12 @@ else:
         file.seek(0)
         dump(template, file, indent = 4)
         raise Exception('Client id and client secret not found! Database template has been created. Please put right API values in db.json.')
+
+OAUTH_URL = f'https://osu.ppy.sh/oauth/authorize?scope=public&response_type=code&redirect_uri={application["redirect_uri"]}&client_id={application["client_id"]}'
+
+@app.context_processor
+def inject_to_templates():
+    return dict(OAUTH_URL=OAUTH_URL)
 
 class Endpoint:
     def get_user_scores_all(bid: int, user: int): return f'{API_URL}/beatmaps/{bid}/scores/users/{user}/all'
@@ -69,7 +75,7 @@ class RequestData:
         'client_secret': application['client_secret'],
         'code': code,
         'grant_type': 'authorization_code',
-        'redirect_uri': 'http://127.0.0.1/authorise'
+        'redirect_uri': application['redirect_uri']
     }
     def RefreshOAuth(refresh_token, access_token):
         return {
@@ -158,10 +164,6 @@ def process_cover(cover):
     draw.text((75, 325), cover['artist'], (255, 255, 255), font=font75)
     draw.text((125, 400), f"{cover['title']} - [{cover['version']}]", (255, 255, 255), font=font50)
     coverimg.save(f'./static/cover/{cover["bid"]}.jpg')
-
-@app.context_processor
-def inject_user():
-    return dict(client_id=application['client_id'])
 
 @app.route('/')
 def index():
