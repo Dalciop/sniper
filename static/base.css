@@ -6,16 +6,20 @@ body {
   background-color: rgb(25, 26, 28);
 }
 
+body a {
+  text-decoration: none;
+}
+
 .topnav {
   overflow: hidden;
   max-height:48px;
-  background-color: #e9e9e9;
+  background-color: rgb(35,39,42);
 }
 
 .topnav a {
   float: left;
   display: block;
-  color: black;
+  color: white;
   text-align: center;
   padding: 14px 16px;
   text-decoration: none;
@@ -41,6 +45,7 @@ body {
   margin-top: 8px;
   font-size: 17px;
   border: none;
+  background-color: rgb(43,42,50);
 }
 
 .topnav .search-container button, .topnav .search-container select {
@@ -48,7 +53,8 @@ body {
   padding: 6px;
   margin-top: 8px;
   margin-right: 16px;
-  background: #ddd;
+  background: rgb(43,47,49);
+  color: white;
   font-size: 17px;
   border: none;
   cursor: pointer;
