@@ -156,7 +156,9 @@ def check_scores(bid):
                     try:    
                         scores.append({'accuracy': Converter.Accuracy(r['accuracy']), 'date': r['created_at'], 'score': r['score'], 'rank': r['rank'], 'uid': r['user_id'], 'username': r['user']['username'], 'perfect': r['perfect'], 'score_url': f'https://osu.ppy.sh/scores/osu/{r["best_id"]}'})
                     except:
-                        return {'invalid': 1}
+                        pass
+                if scores == []:
+                    return {'invalid': 1}
     scores = sorted(scores, key=lambda d: d['score'], reverse=True)
     return scores
 
