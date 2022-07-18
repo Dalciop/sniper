@@ -21,27 +21,40 @@ if exists('db.json'):
             'client_secret': db.get('application')['client_secret'],
             'redirect_uri': db.get('application')['redirect_uri']
         }
-        if db.get('application')['client_id'] == 0 or db.get('application')['client_secret'] == '':
-            raise Exception('Client id and client secret not found! Please put right API values in db.json.')
+        path = {
+            'cover': db.get('config')['path']['cover'],
+            'banner': db.get('config')['path']['banner'],
+            'fonts': db.get('config')['path']['banner']
+        }
+        if db.get('application')['client_id'] == 0 or db.get('application')['client_secret'] == '' or db.get('application')['redirect_uri'] == '':
+            raise Exception('Client id, client secret or redirect_uri not found! Please put right API values in db.json.')
 else:
     with open('db.json', 'w') as file:
         template = {
             "application": {
                 'client_id': 0,
-                'client_secret': ''
+                'client_secret': '',
+                'redirect_uri': ''
+            },
+            "config": {
+                "path": {
+                    "cover": './static/cover',
+                    "banner": './static/banner.jpg',
+                    "fonts": './static/fonts'
+                }
             },
             "users": [],
             "bounty": []
         }
         file.seek(0)
         dump(template, file, indent = 4)
-        raise Exception('Client id and client secret not found! Database template has been created. Please put right API values in db.json.')
+        raise Exception('db.json not found! Database template has been created. Please put right API values in db.json.')
 
 OAUTH_URL = f'https://osu.ppy.sh/oauth/authorize?scope=public&response_type=code&redirect_uri={application["redirect_uri"]}&client_id={application["client_id"]}'
 
 @app.context_processor
 def inject_to_templates():
-    return dict(OAUTH_URL=OAUTH_URL)
+    return dict(OAUTH_URL=OAUTH_URL, path=path)
 
 class Endpoint:
     def get_user_scores_all(bid: int, user: int): return f'{API_URL}/beatmaps/{bid}/scores/users/{user}/all'
@@ -151,19 +164,19 @@ def get_data(eurl, token, params=None):
 
 def process_cover(cover):
     r = get(cover['banner_url'])
-    if not exists("./static/cover"):
-        mkdir('./static/cover')
-    with open(f'./static/cover/{cover["bid"]}.jpg', 'wb') as f:
+    if not exists(path['cover']):
+        mkdir(path['cover'])
+    with open(f'{path["cover"]}/{cover["bid"]}.jpg', 'wb') as f:
         f.write(r.content)
-    font75 = ImageFont.truetype("./static/fonts/Modern_Sans_Light.otf", 75)
-    font50 = ImageFont.truetype("./static/fonts/Modern_Sans_Light.otf", 50)
-    coverimg = Image.open(f'./static/cover/{cover["bid"]}.jpg')
+    font75 = ImageFont.truetype(f"{path['fonts']}/Modern_Sans_Light.otf", 75)
+    font50 = ImageFont.truetype(f"{path['fonts']}/Modern_Sans_Light.otf", 50)
+    coverimg = Image.open(f'{path["cover"]}/{cover["bid"]}.jpg')
     coverimg = coverimg.filter(ImageFilter.GaussianBlur(15))
     coverimg = ImageEnhance.Brightness(coverimg).enhance(0.8)
     draw = ImageDraw.Draw(coverimg)
     draw.text((75, 325), cover['artist'], (255, 255, 255), font=font75)
     draw.text((125, 400), f"{cover['title']} - [{cover['version']}]", (255, 255, 255), font=font50)
-    coverimg.save(f'./static/cover/{cover["bid"]}.jpg')
+    coverimg.save(f'{path["cover"]}/{cover["bid"]}.jpg')
 
 @app.route('/')
 def index():

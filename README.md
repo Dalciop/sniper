@@ -1,6 +1,6 @@
 # SNIPER
 
-A [Flask](https://github.com/pallets/flask) based website to snipe your friends and laugh from their skill issue
+[Flask](https://github.com/pallets/flask) based website to snipe your friends and laugh from their skill issue
 
 ## Initial Startup
 
@@ -15,7 +15,7 @@ Linux:
 python3 ./app.py
 ```
 
-If you don't have python you can download it from their [website](https://www.python.org/downloads/) or package manager:
+If you don't have python you can download it from their [website](https://www.python.org/downloads/) or install using package manager:
 
 Ubuntu/Debian:
 ```bash
@@ -46,4 +46,29 @@ If you inserted correct values you should see in your terminal something like th
 
 Now you should be able to load website.
 
-If you find any problem feel free to post it in [issues](https://github.com/Dalciop/sniper/issues/) tab.
+## Configuration
+
+You can configure SNIPER in config section of database:
+
+```bash
+"config": {
+        "path": {
+            "cover": "./static/cover",
+            "banner": "./static/banner.jpg",
+            "fonts": "./static/fonts"
+        }
+    }
+```
+
+For now you can configure:
+
+- cover path
+- banner path
+- fonts path
+
+###Note that due to lack of data injection in css from backend like in templates, fonts paths in it are hardcoded.
+
+
+## Contributing
+
+If you find any problem or have an idea feel free to post it in [issues](https://github.com/Dalciop/sniper/issues/) tab.
