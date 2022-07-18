@@ -22,7 +22,7 @@ Ubuntu/Debian:
 sudo apt install python3
 ```
 
-I don't recommend using Microsoft Store version for it, because it have some issues with modules management.
+I don't recommend using Microsoft Store version, because it have some issues with accessing modules.
 
 On first start SNIPER should automatically generate database template but you still need to edit some of it values to make it work properly. Create your [application](https://osu.ppy.sh/wiki/en/osu!api) and put client_id, client_secret and redirect_uri in database application section.
 
@@ -48,7 +48,7 @@ Now you should be able to load website.
 
 ## Configuration
 
-You can configure SNIPER in config section of database:
+You can modify SNIPER in config section of database:
 
 ```bash
 "config": {
@@ -66,7 +66,7 @@ For now you can configure:
 - banner path
 - fonts path
 
-###Note that due to lack of data injection in css from backend like in templates, fonts paths in it are hardcoded.
+**Note that due to lack of data injection in css from backend like in templates, fonts paths in it are hardcoded.**
 
 
 ## Contributing

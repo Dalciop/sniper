@@ -24,7 +24,7 @@ if exists('db.json'):
         path = {
             'cover': db.get('config')['path']['cover'],
             'banner': db.get('config')['path']['banner'],
-            'fonts': db.get('config')['path']['banner']
+            'fonts': db.get('config')['path']['fonts']
         }
         if db.get('application')['client_id'] == 0 or db.get('application')['client_secret'] == '' or db.get('application')['redirect_uri'] == '':
             raise Exception('Client id, client secret or redirect_uri not found! Please put right API values in db.json.')
@@ -132,9 +132,13 @@ class Token:
 class Converter:
     def Accuracy(acc):
         if acc == 1:
-            return '100%'
+            return '100.00%'
         acc = acc * 100
-        acc = str(round(acc, 2)) + '%'
+        acc = str(round(acc, 2))
+        if len(acc.split('.')[1]) == 1:
+            acc += '0' + '%'
+        else:
+            acc += '%'
         return acc
 
 if 'unauthorized' in Token.get_NoOAuth():
