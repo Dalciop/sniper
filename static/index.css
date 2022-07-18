@@ -5,11 +5,8 @@
     margin-right: auto;
     height: 500px;
     max-width: 80vw;
-    display: flex;
-    align-items: center;
-    text-align: center;
-    position: relative;
     color: white;
+    margin-bottom: 25px;
 }
 
 .banner img {
@@ -17,6 +14,7 @@
     margin-left: auto;
     margin-right: auto;
     object-fit: cover;
+    width: 80vw;
 }
 
 .banner h1 {
@@ -32,14 +30,15 @@
     margin-left: auto;
     margin-right: auto;
     max-width: 80vw;
-    display: block;
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .cover {
     width: 325px;
     height: 325px;
-    margin-top: 25px;
-    margin-left: 25px;
+    margin-left: auto;
     margin-right: auto;
     float: left;
 }
