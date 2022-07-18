@@ -3,14 +3,14 @@
 .banner {
     margin-left: auto;
     margin-right: auto;
-    height: 500px;
+    height: 50vh;
     max-width: 80vw;
     color: white;
     margin-bottom: 25px;
 }
 
 .banner img {
-    height: 500px;
+    height: 50vh;
     margin-left: auto;
     margin-right: auto;
     object-fit: cover;
@@ -23,7 +23,18 @@
     left: 50%;
     transform: translate(-50%, -50%);
     font-family: Modern_Sans;
-    font-size: 750%;
+    font-size: 8vw;
+}
+
+@media screen and (max-width: 600px) {
+    .banner h1 {
+        position: absolute;
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: Modern_Sans;
+        font-size: 12vw;
+    }
 }
 
 .bounty {
