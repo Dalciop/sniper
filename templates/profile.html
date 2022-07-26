@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block head %}
+    <title>SNIPER - {{user['username']}}</title>
+    <link rel="stylesheet" href="/static/profile.css">
+{% endblock %}
+{% block content %}
+    <div class="cover">
+        <img src="{{user['cover']['custom_url']}}">
+    </div>
+    <div class="profile">
+        <div class="usercard">
+            <div class="left-block">
+                <div class="userinfo">
+                    <div class="avatar">
+                        <img src="{{user['avatar_url']}}">
+                    </div>
+                    <div class="userinfo-details">
+                        <div class="username"><h1>{{user['username']}}</h1></div>
+                        <div class="country">
+                            <div class="flag">
+                                <img src="{{user['country_flag']}}">
+                            </div>
+                            <div class="name">
+                                {{user['country']['name']}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="userstats">
+                    <div class="userstats-content">
+                        <div class="userstats-key" style="float:left">
+                            <p style="font-size: 24px;">Global rank</p>
+                            <p style="font-size: 16px;">Country rank</p>
+                            <p style="font-size: 16px;">Accuracy</p>
+                            <p style="font-size: 16px;">Performance</p>
+                            <p style="font-size: 16px;">Level</p>
+                        </div>
+                        <div class="userstats-value" style="float:right">
+                            <b><p style="font-size: 24px;">{{user['statistics']['global_rank']}}</p></b>
+                            <b><p style="font-size: 16px;">{{user['statistics']['country_rank']}}</p></b>
+                            <b><p style="font-size: 16px;">{{user['statistics']['hit_accuracy']}}</p></b>
+                            <b><p style="font-size: 16px;">{{user['statistics']['pp']}}</p></b>
+                            <b><p style="font-size: 16px;">{{user['statistics']['level']['current']}}</p></b>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="right-div">
+                <div class="infoblock">
+                    <div class="tabbar">
+                        <button class="tablink" onclick="openCard('me', this)" id="defaultOpen">me!</button>
+                        <button class="tablink" onclick="openCard('bounty', this)">Bounty</button>
+                    </div>
+                    <div class="tabresult">
+                        <div id="me" class="tabcontent">
+                            {{user['me'] | safe}}
+                        </div>
+                        <div id="bounty" class="tabcontent">
+                            WIP
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="progressbar">
+
+        </div>
+        <div class="userinfobar">
+
+        </div>
+    </div>
+
+<script>
+function openCard(card, elmnt) {
+  // Hide all elements with class="tabcontent" by default */
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+
+  // Show the specific tab content
+  document.getElementById(card).style.display = "block";
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click(); 
+</script>
+{% endblock %}

@@ -1,3 +1,12 @@
+{% if error != 'None' %}
+    <div class="error" id="noti"><h2>{{error}}</h2><button onclick="closeNoti()">X</button></div>
+    <script> 
+    function closeNoti() { 
+        var Noti = document.getElementById("noti");
+        Noti.style.display = "none";
+    } 
+    </script>
+{%endif%}
 {% extends 'base.html' %}
 {% block head %}
     <title>strona - Homepage</title>

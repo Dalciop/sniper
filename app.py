@@ -1,10 +1,12 @@
 from datetime import datetime
 from json import dump, dumps, load, loads
+from bs4 import BeautifulSoup
 from flask import Flask, render_template, redirect, request, session
 from requests import post, get
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageEnhance
 from os.path import exists
 from os import mkdir
+from requests_cache import install_cache
 
 app = Flask(__name__)
 
@@ -12,6 +14,7 @@ app.secret_key = "secret key"
 
 API_URL = 'https://osu.ppy.sh/api/v2'
 TOKEN_URL = 'https://osu.ppy.sh/oauth/token'
+OSU_URL = 'https://osu.ppy.sh'
 
 if exists('db.json'):
     with open('db.json', 'r+') as file:
@@ -50,7 +53,7 @@ else:
         dump(template, file, indent = 4)
         raise Exception('db.json not found! Database template has been created. Please put right API values in db.json.')
 
-OAUTH_URL = f'https://osu.ppy.sh/oauth/authorize?scope=public&response_type=code&redirect_uri={application["redirect_uri"]}&client_id={application["client_id"]}'
+OAUTH_URL = f'https://osu.ppy.sh/oauth/authorize?scope=friends.read&response_type=code&redirect_uri={application["redirect_uri"]}&client_id={application["client_id"]}'
 
 @app.context_processor
 def inject_to_templates():
@@ -62,6 +65,7 @@ class Endpoint:
     def get_own_data(): return f'{API_URL}/me'
     def get_user_data(uid: int): return f'{API_URL}/users/{uid}'
     def get_beatmap(bid: int): return f'{API_URL}/beatmaps/{bid}'
+    def get_friends(): return f'{API_URL}/friends'
 
 class Headers:
     def headers(token):
@@ -70,9 +74,9 @@ class Headers:
         'Accept': 'application/json',
         'Authorization': f'Bearer {token}'
     }
-    OAuthHeader = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+    OAuthRefreshHeader = {
+        'Content-Type': "application/x-www-form-urlencoded",
+        'Accept': 'application/json', 
     }
 
 class RequestData:
@@ -92,10 +96,10 @@ class RequestData:
     }
     def RefreshOAuth(refresh_token, access_token):
         return {
-            'grant_type': "refresh_token",
+            'grant_type': 'refresh_token',
             'refresh_token': refresh_token,
             'access_token': access_token,
-            'client_id': application['client_id'],
+            'client_id': int(application['client_id']),
             'client_secret': application['client_secret']
         }
 
@@ -117,7 +121,7 @@ class Token:
         return response 
 
     def refresh_OAuth(refresh_token, access_token):
-        response = post(TOKEN_URL, data=RequestData.RefreshOAuth(refresh_token, access_token), headers=Headers.OAuthHeader)
+        response = post(TOKEN_URL, data=RequestData.RefreshOAuth(refresh_token, access_token), headers=Headers.OAuthRefreshHeader)
         r = response.json()
         with open('db.json', 'r+') as file:
             db = load(file)
@@ -127,7 +131,8 @@ class Token:
                     i['refresh_token'] = r.get('refresh_token')
             file.seek(0)
             dump(db, file, indent = 4)
-            return r
+            file.truncate()
+        return r
 
 class Converter:
     def Accuracy(acc):
@@ -140,6 +145,22 @@ class Converter:
         else:
             acc += '%'
         return acc
+    def ProfileAccuracy(acc):
+        if acc == 100:
+            return '100.00%'
+        acc = str(round(acc, 2))
+        if len(acc.split('.')[1]) == 1:
+            acc += '0' + '%'
+        else:
+            acc += '%'
+        return acc
+
+class Error:
+    def ErrorHandler(ecode):
+        if ecode == None:
+            return 'None'
+        elif ecode == '1':
+            return 'Authentication canceled!'
 
 if 'unauthorized' in Token.get_NoOAuth():
     raise Exception('Wrong application values! Please make sure that client_id and client_secret are correct!')
@@ -184,8 +205,18 @@ def process_cover(cover):
     draw.text((125, 400), f"{cover['title']} - [{cover['version']}]", (255, 255, 255), font=font50)
     coverimg.save(f'{path["cover"]}/{cover["bid"]}.jpg')
 
+class Scraper:
+    def country_flag(code):
+        page = get(f"https://osu.ppy.sh/rankings/osu/performance?country={code}")
+        soup = BeautifulSoup(page.content, "lxml")
+        # flag = results.find_all("div", "flag-country flag-country--medium")
+        flag = soup.find("div", {'class':"flag-country flag-country--medium"})['style'].split('(')[1].split("'")[1]
+        return OSU_URL + flag
+
 @app.route('/')
 def index():
+    error = Error.ErrorHandler(request.args.get('error'))
+    print(error)
     with open('db.json', 'r+') as file:
         db = load(file)
         bounty = []
@@ -197,8 +228,7 @@ def index():
         else:
             for i in db.get('bounty'):
                 bounty.append(i)
-        
-    return render_template("index.html", bounty=loads(dumps(bounty)))
+    return render_template("index.html", bounty=loads(dumps(bounty)), error=error)
 
 @app.route('/score')
 def score():
@@ -218,6 +248,22 @@ def me():
             return r
     return redirect(OAUTH_URL)
 
+@app.route('/friends')
+def friends():
+    response = get_data(Endpoint.get_friends(), session['access_token'])
+    friends = {"friends": []}
+    for i in response:
+        friends['friends'].append({"avatar_url": i['avatar_url'], "is_active": i['is_active'], "id": i['id'], 'country': i['country'], 'username': i['username'], "support_level": i['support_level'], 'cover': i['cover'], "staticstics": i['statistics']})
+    return loads(dumps(friends))
+
+@app.route('/u/<int:uid>')
+def profile(uid):
+    r = get_data(Endpoint.get_user_data(uid), Token.get_NoOAuth())
+    r['statistics']['pp'] = int(r['statistics']['pp'])
+    r['statistics']['hit_accuracy'] = Converter.ProfileAccuracy(r['statistics']['hit_accuracy'])
+    user = {'me': r['page']['html'], 'country': r['country'], 'cover': r['cover'], 'avatar_url': r['avatar_url'], 'is_active': r['is_active'], 'join_date': r['join_date'], 'username': r['username'], 'statistics': r['statistics'], 'support_level': r['support_level'], 'country_flag': Scraper.country_flag(r['country']['code'])}
+    return render_template('profile.html', user=loads(dumps(user)))
+
 @app.route('/login')
 def login():
     return f'<a href="{OAUTH_URL}">Login</a>'
@@ -225,9 +271,13 @@ def login():
 @app.route('/authorise')
 def authorise():
     code = request.args.get('code')
+    if request.args.get('error') == 'access_denied':
+        return redirect('/?error=1')
     with open('db.json', 'r+') as file:
         db = load(file)
         token_OAuth = Token.get_OAuth(code)
+        if token_OAuth['access_token'] == 'null' or token_OAuth['refresh_token'] == 'null':
+            return redirect('/')
         uid = get_data(Endpoint.get_own_data(), token_OAuth.get('access_token'))['id']
         session['access_token'] = token_OAuth['access_token']
         session['uid'] = uid
